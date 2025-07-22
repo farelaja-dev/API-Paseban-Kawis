@@ -2,7 +2,10 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatbotController;
+
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -14,11 +17,18 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::get('/test', function () {
-return response()->json(['message' => 'API works!']);
+    return response()->json(['message' => 'API works!']);
 });
 
-Route::middleware('auth:sanctum')->get('/profile', [AuthController::class, 'profile']);
+// Route::middleware('auth:sanctum')->get('/profile', [AuthController::class, 'profile']);
 
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/verify-forgot-otp', [AuthController::class, 'verifyForgotOtp']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/chat/start', [ChatbotController::class, 'startSession']);
+    Route::post('/chat/send', [ChatbotController::class, 'sendMessage']);
+    Route::get('/chat/history/{sessionId}', [ChatbotController::class, 'getSessionLogs']);
+    Route::post('/chat/end/{sessionId}', [ChatbotController::class, 'endSession']);
+});
