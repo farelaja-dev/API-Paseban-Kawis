@@ -6,6 +6,96 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/api/akun/user-list": {
+            "get": {
+                "tags": [
+                    "Akun"
+                ],
+                "summary": "List user dengan role_id=2 (user biasa)",
+                "operationId": "06482033b053c2396f3a1a9a19e2627f",
+                "responses": {
+                    "200": {
+                        "description": "Daftar user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "nama": {
+                                                "type": "string"
+                                            },
+                                            "email": {
+                                                "type": "string"
+                                            },
+                                            "telepon": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/akun/user/{id}": {
+            "delete": {
+                "tags": [
+                    "Akun"
+                ],
+                "summary": "Hapus user dan data terkait (admin only)",
+                "operationId": "7730b490c48cda46b27f7ba0d265bd3d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User and related data deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/login": {
             "post": {
                 "tags": [
@@ -298,12 +388,610 @@
                     }
                 }
             }
+        },
+        "/api/resend-register-otp": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Kirim ulang OTP registrasi ke email user yang belum diverifikasi",
+                "operationId": "799e7c39e59cfd475de6a1ed0fc9c5ba",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@email.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP dikirim ulang ke email",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Kode OTP dikirim ulang ke email"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User tidak ditemukan atau sudah diverifikasi"
+                    }
+                }
+            }
+        },
+        "/api/category_modul": {
+            "get": {
+                "tags": [
+                    "Category Modul"
+                ],
+                "summary": "List semua kategori modul",
+                "operationId": "a3956ceae2068ed63a7bc1567931ac03",
+                "responses": {
+                    "200": {
+                        "description": "List kategori modul",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/CategoryModul"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Category Modul"
+                ],
+                "summary": "Tambah kategori modul baru (admin only, role_id=1)",
+                "operationId": "f8c720bbaca7e03d6ab8383e4efe5858",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nama"
+                                ],
+                                "properties": {
+                                    "nama": {
+                                        "type": "string",
+                                        "example": "Design Product"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Kategori modul berhasil dibuat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CategoryModul"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/category_modul/{id}": {
+            "get": {
+                "tags": [
+                    "Category Modul"
+                ],
+                "summary": "Detail kategori modul",
+                "operationId": "15fe59ee887dd62929c4c4b872a7cda5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail kategori modul",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CategoryModul"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Category Modul"
+                ],
+                "summary": "Update kategori modul (admin only, role_id=1)",
+                "operationId": "b80e30b3dc70ec454753b10767a7ee8b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nama"
+                                ],
+                                "properties": {
+                                    "nama": {
+                                        "type": "string",
+                                        "example": "Design Product Baru"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kategori modul berhasil diupdate",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CategoryModul"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Category Modul"
+                ],
+                "summary": "Hapus kategori modul beserta semua modul yang terkait (admin only, role_id=1)",
+                "operationId": "805447ec4da5911d877eb733592bc0ce",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kategori dan modul terkait berhasil dihapus",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Category and related modul deleted"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/modul": {
+            "get": {
+                "tags": [
+                    "Modul"
+                ],
+                "summary": "List semua modul dengan data kategori",
+                "operationId": "e3e1df3d08b646b167330a00745552d6",
+                "responses": {
+                    "200": {
+                        "description": "List modul dengan data kategori",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Modul"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Modul"
+                ],
+                "summary": "Tambah modul baru (admin only, role_id=1)",
+                "operationId": "85b68db46dded71e6e304d4ef04af9cd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "judul_modul",
+                                    "category_modul_id",
+                                    "link_video",
+                                    "deskripsi_modul"
+                                ],
+                                "properties": {
+                                    "judul_modul": {
+                                        "type": "string",
+                                        "example": "Dasar Desain Produk"
+                                    },
+                                    "category_modul_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "link_video": {
+                                        "type": "string",
+                                        "example": "https://youtu.be/xxxx"
+                                    },
+                                    "pdf": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    },
+                                    "foto": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    },
+                                    "deskripsi_modul": {
+                                        "type": "string",
+                                        "example": "Penjelasan modul..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Modul berhasil dibuat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Modul"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/modul/{id}": {
+            "get": {
+                "tags": [
+                    "Modul"
+                ],
+                "summary": "Detail modul dengan data kategori",
+                "operationId": "34bd3053d3bee7853841f025205e81d4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail modul dengan data kategori",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Modul"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Modul"
+                ],
+                "summary": "Update modul (admin only, role_id=1)",
+                "operationId": "3f3a8067656ae5b1689b16cc857faa12",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "judul_modul": {
+                                        "type": "string",
+                                        "example": "Dasar Desain Produk"
+                                    },
+                                    "category_modul_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "link_video": {
+                                        "type": "string",
+                                        "example": "https://youtu.be/xxxx"
+                                    },
+                                    "pdf": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    },
+                                    "foto": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    },
+                                    "deskripsi_modul": {
+                                        "type": "string",
+                                        "example": "Penjelasan modul..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Modul berhasil diupdate",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Modul"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Modul"
+                ],
+                "summary": "Hapus modul (admin only, role_id=1)",
+                "operationId": "53f0e548139a564d541a984b75b87af4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Modul berhasil dihapus",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Modul deleted"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "CategoryModul": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "nama": {
+                        "type": "string",
+                        "example": "Design Product"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Modul": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "judul_modul": {
+                        "type": "string",
+                        "example": "Dasar Desain Produk"
+                    },
+                    "category_modul_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "link_video": {
+                        "type": "string",
+                        "example": "https://youtu.be/xxxx"
+                    },
+                    "path_pdf": {
+                        "type": "string",
+                        "example": "storage/modul_pdfs/abc.pdf"
+                    },
+                    "foto": {
+                        "type": "string",
+                        "example": "storage/modul_fotos/abc.jpg"
+                    },
+                    "deskripsi_modul": {
+                        "type": "string",
+                        "example": "Penjelasan modul..."
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "category_modul": {
+                        "$ref": "#/components/schemas/CategoryModul"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
         }
     },
     "tags": [
         {
+            "name": "Akun",
+            "description": "Akun"
+        },
+        {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Category Modul",
+            "description": "Category Modul"
+        },
+        {
+            "name": "Modul",
+            "description": "Modul"
         }
     ]
 }
