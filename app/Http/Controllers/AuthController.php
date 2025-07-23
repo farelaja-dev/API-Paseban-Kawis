@@ -63,8 +63,10 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'nama' => $user->nama,
                 'email' => $user->email,
+                'email_verified_at' => $user->email_verified_at,
                 'telepon' => $user->telepon,
                 'foto' => $user->foto,
+                'role_id' => $user->role_id,
             ],
         ]);
     }
@@ -315,5 +317,69 @@ class AuthController extends Controller
         $user->save();
 
         return response()->json(['message' => 'Password reset successful']);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/resend-register-otp",
+     *     summary="Kirim ulang OTP registrasi ke email user yang belum diverifikasi",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@email.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="OTP dikirim ulang ke email",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Kode OTP dikirim ulang ke email")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User tidak ditemukan atau sudah diverifikasi"
+     *     )
+     * )
+     */
+    public function resendRegisterOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'User tidak ditemukan'], 404);
+        }
+        if ($user->email_verified_at) {
+            return response()->json(['message' => 'Email sudah diverifikasi'], 404);
+        }
+
+        $kode_otp = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        $expired = now()->addMinutes(10);
+
+        // Update or create OTP baru untuk type register
+        \App\Models\EmailOtp::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'type' => 'register',
+            ],
+            [
+                'kode_otp' => $kode_otp,
+                'expired_at' => $expired,
+            ]
+        );
+
+        // Kirim email OTP
+        Mail::raw("Kode OTP Anda: $kode_otp", function($msg) use ($user) {
+            $msg->to($user->email)->subject('Kode OTP Registrasi');
+        });
+
+        return response()->json([
+            'message' => 'Kode OTP dikirim ulang ke email',
+        ]);
     }
 } 
