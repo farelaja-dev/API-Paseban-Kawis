@@ -21,18 +21,19 @@ Route::get('/test', function () {
 return response()->json(['message' => 'API works!']);
 });
 
-Route::middleware('auth:sanctum')->get('/profile', [AuthController::class, 'profile']);
-
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/verify-forgot-otp', [AuthController::class, 'verifyForgotOtp']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // GET (index, show) untuk semua user login (role 1 & 2)
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::get('/category_modul', [CategoryModulController::class, 'index']);
     Route::get('/category_modul/{id}', [CategoryModulController::class, 'show']);
     Route::get('/modul', [ModulController::class, 'index']);
     Route::get('/modul/{id}', [ModulController::class, 'show']);
+    Route::get('/statistik', [AuthController::class, 'statistik']);
 
     // AkunController
     Route::get('/akun/user-list', [AkunController::class, 'listUser']);

@@ -439,6 +439,150 @@
                 }
             }
         },
+        "/api/statistik": {
+            "get": {
+                "tags": [
+                    "Statistik"
+                ],
+                "summary": "Statistik total user, total modul, dan user aktif",
+                "operationId": "47f339df8ae309713387686fb4259172",
+                "responses": {
+                    "200": {
+                        "description": "Statistik",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "total_user": {
+                                            "type": "integer"
+                                        },
+                                        "total_modul": {
+                                            "type": "integer"
+                                        },
+                                        "user_aktif": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/profile": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get profile of authenticated user",
+                "operationId": "d32e56b6274eb68e980da6d91fbe9fd8",
+                "responses": {
+                    "200": {
+                        "description": "User profile data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "nama": {
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "email_verified_at": {
+                                            "type": "string"
+                                        },
+                                        "telepon": {
+                                            "type": "string"
+                                        },
+                                        "foto": {
+                                            "type": "string"
+                                        },
+                                        "role_id": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Update profile of authenticated user",
+                "operationId": "ac662ae856fb1cc2239e27417f0496bd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nama": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "telepon": {
+                                        "type": "string"
+                                    },
+                                    "foto": {
+                                        "description": "URL or base64 of photo",
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "user": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/category_modul": {
             "get": {
                 "tags": [
@@ -984,6 +1128,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Statistik",
+            "description": "Statistik"
         },
         {
             "name": "Category Modul",

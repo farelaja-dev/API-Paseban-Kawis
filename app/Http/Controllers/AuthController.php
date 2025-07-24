@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\EmailOtp;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -52,6 +54,9 @@ class AuthController extends Controller
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Email atau password salah'], 401);
         }
+
+        // Hapus semua token lama user sebelum generate token baru
+        $user->tokens()->delete();
 
         // Generate token dengan expired 1 bulan
         $token = $user->createToken('flutter-app', ['*'], now()->addMonth())->plainTextToken;
@@ -114,6 +119,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'telepon' => $request->telepon,
             'role_id' => 2, 
+            'foto' => 'storage/foto_profil/default.png',
         ]);
 
         if (!$user || !$user->id) {
@@ -380,6 +386,140 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Kode OTP dikirim ulang ke email',
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/statistik",
+     *     summary="Statistik total user, total modul, dan user aktif",
+     *     tags={"Statistik"},
+     *     security={{ "sanctum":{} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Statistik",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="total_user", type="integer"),
+     *             @OA\Property(property="total_modul", type="integer"),
+     *             @OA\Property(property="user_aktif", type="integer")
+     *         )
+     *     )
+     * )
+     */
+    public function statistik()
+    {
+        $totalUser = \App\Models\User::count();
+        $totalModul = \App\Models\Modul::count();
+        $userAktif = DB::table('personal_access_tokens')
+            ->where(function($q) {
+                $q->whereNull('expires_at')
+                  ->orWhere('expires_at', '>', now());
+            })
+            ->join('users', 'personal_access_tokens.tokenable_id', '=', 'users.id')
+            ->distinct('personal_access_tokens.tokenable_id')
+            ->count('personal_access_tokens.tokenable_id');
+        return response()->json([
+            'total_user' => $totalUser,
+            'total_modul' => $totalModul,
+            'user_aktif' => $userAktif,
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/profile",
+     *     summary="Get profile of authenticated user",
+     *     tags={"Auth"},
+     *     security={{ "sanctum":{} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User profile data",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="nama", type="string"),
+     *             @OA\Property(property="email", type="string"),
+     *             @OA\Property(property="email_verified_at", type="string"),
+     *             @OA\Property(property="telepon", type="string"),
+     *             @OA\Property(property="foto", type="string"),
+     *             @OA\Property(property="role_id", type="integer")
+     *         )
+     *     )
+     * )
+     */
+    public function profile(Request $request)
+    {
+        $user = $request->user();
+        return response()->json([
+            'id' => $user->id,
+            'nama' => $user->nama,
+            'email' => $user->email,
+            'email_verified_at' => $user->email_verified_at,
+            'telepon' => $user->telepon,
+            'foto' => $user->foto,
+            'role_id' => $user->role_id,
+        ]);
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/api/profile",
+     *     summary="Update profile of authenticated user",
+     *     tags={"Auth"},
+     *     security={{ "sanctum":{} }},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="nama", type="string"),
+     *             @OA\Property(property="email", type="string"),
+     *             @OA\Property(property="telepon", type="string"),
+     *             @OA\Property(property="foto", type="string", description="URL or base64 of photo", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Profile updated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="user", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        $request->validate([
+            'nama' => 'sometimes|required|string',
+            'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
+            'telepon' => 'sometimes|required|string',
+            'foto' => 'nullable|file|image|max:2048',
+        ]);
+
+        $user->fill($request->only(['nama', 'email', 'telepon']));
+
+        if ($request->hasFile('foto')) {
+            // Hapus foto lama jika ada
+            if ($user->foto) {
+                $oldPath = str_replace('storage/', '', $user->foto);
+                Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('foto')->store('foto_profil', 'public');
+            $user->foto = 'storage/' . $path;
+        }
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profile updated',
+            'user' => [
+                'id' => $user->id,
+                'nama' => $user->nama,
+                'email' => $user->email,
+                'email_verified_at' => $user->email_verified_at,
+                'telepon' => $user->telepon,
+                'foto' => $user->foto,
+                'role_id' => $user->role_id,
+            ],
         ]);
     }
 } 
