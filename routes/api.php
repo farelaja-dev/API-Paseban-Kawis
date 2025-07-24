@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryModulController;
 use App\Http\Controllers\ModulController;
 use App\Http\Controllers\AkunController;
+use App\Http\Controllers\ChatbotController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -18,7 +19,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::get('/test', function () {
-return response()->json(['message' => 'API works!']);
+    return response()->json(['message' => 'API works!']);
 });
 
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -34,6 +35,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/modul', [ModulController::class, 'index']);
     Route::get('/modul/{id}', [ModulController::class, 'show']);
     Route::get('/statistik', [AuthController::class, 'statistik']);
+
+    Route::post('/chat/start', [ChatbotController::class, 'startSession']);
+    Route::post('/chat/send', [ChatbotController::class, 'sendMessage']);
+    Route::get('/chat/history/{sessionId}', [ChatbotController::class, 'getSessionLogs']);
+    Route::post('/chat/end/{sessionId}', [ChatbotController::class, 'endSession']);
+    Route::get('/chat/sessions', [ChatbotController::class, 'getAllSessions']);
 
     // AkunController
     Route::get('/akun/user-list', [AkunController::class, 'listUser']);
