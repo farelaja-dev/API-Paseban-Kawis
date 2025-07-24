@@ -7,6 +7,8 @@ use App\Http\Controllers\CategoryModulController;
 use App\Http\Controllers\ModulController;
 use App\Http\Controllers\AkunController;
 use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\QuizController;
+
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -55,5 +57,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/modul', [ModulController::class, 'store']);
         Route::post('/modul/{id}', [ModulController::class, 'update']);
         Route::delete('/modul/{id}', [ModulController::class, 'destroy']);
+    });
+});
+
+// Semua endpoint quiz hanya untuk user login
+Route::middleware('auth:sanctum')->group(function () {
+    // USER
+    Route::get('/quiz', [QuizController::class, 'listQuiz']);
+    Route::get('/quiz/{quiz_id}/questions', [QuizController::class, 'getQuestions']);
+    Route::post('/quiz/{quiz_id}/submit', [QuizController::class, 'submitAnswers']);
+
+    // ADMIN (role:1)
+    Route::middleware('role:1')->group(function () {
+        Route::post('/quiz', [QuizController::class, 'store']);
+        Route::post('/quiz/{quiz_id}/questions', [QuizController::class, 'addQuestion']);
+        Route::post('/quiz/questions/{question_id}/options', [QuizController::class, 'addOption']);
     });
 });
