@@ -66,4 +66,16 @@ class ChatbotController extends Controller
         ChatSession::where('id', $sessionId)->update(['ended_at' => now()]);
         return response()->json(['message' => 'Sesi chat telah diakhiri']);
     }
+
+    public function getAllSessions(Request $request)
+    {
+        $sessions = ChatSession::where('user_id', $request->user()->id)
+            ->with(['latestMessage' => function ($query) {
+                $query->select('session_id', 'prompt', 'created_at');
+            }])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json(['sessions' => $sessions]);
+    }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('prompt');
             $table->text('response');
             $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent();
         });
     }
 

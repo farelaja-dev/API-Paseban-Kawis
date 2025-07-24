@@ -3,19 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ChatLog extends Model
 {
-    public $timestamps = false;
+    use HasFactory;
 
     protected $fillable = [
         'session_id',
         'prompt',
         'response',
-        'created_at'
     ];
 
-    public function session()
+    public function chatSession()
     {
         return $this->belongsTo(ChatSession::class, 'session_id');
     }
