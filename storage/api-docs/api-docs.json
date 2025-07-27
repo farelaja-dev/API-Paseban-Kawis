@@ -444,7 +444,7 @@
                 "tags": [
                     "Statistik"
                 ],
-                "summary": "Statistik total user, total modul, dan user aktif",
+                "summary": "Statistik total user, total modul, total quiz, dan user aktif",
                 "operationId": "47f339df8ae309713387686fb4259172",
                 "responses": {
                     "200": {
@@ -457,6 +457,9 @@
                                             "type": "integer"
                                         },
                                         "total_modul": {
+                                            "type": "integer"
+                                        },
+                                        "total_quiz": {
                                             "type": "integer"
                                         },
                                         "user_aktif": {
@@ -791,6 +794,248 @@
                         "sanctum": []
                     }
                 ]
+            }
+        },
+        "/api/chat/start": {
+            "post": {
+                "tags": [
+                    "Chatbot"
+                ],
+                "summary": "Mulai sesi chat baru",
+                "operationId": "c6f9a54bc682ad78fac60ffddef75619",
+                "responses": {
+                    "200": {
+                        "description": "Session ID berhasil dibuat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "session_id": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/chat/send": {
+            "post": {
+                "tags": [
+                    "Chatbot"
+                ],
+                "summary": "Kirim pesan ke chatbot dan dapatkan balasan",
+                "operationId": "ba3ff8e6fd30bbdb9bbb2450e3ebe536",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "session_id",
+                                    "prompt"
+                                ],
+                                "properties": {
+                                    "session_id": {
+                                        "type": "integer"
+                                    },
+                                    "prompt": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Balasan dari chatbot",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "reply": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/chat/history/{sessionId}": {
+            "get": {
+                "tags": [
+                    "Chatbot"
+                ],
+                "summary": "Ambil semua log chat untuk satu sesi",
+                "operationId": "4bbe0ff4b9c39d234e0a5c729b292d64",
+                "parameters": [
+                    {
+                        "name": "sessionId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar log chat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "logs": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "prompt": {
+                                                        "type": "string"
+                                                    },
+                                                    "response": {
+                                                        "type": "string"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/chat/end/{sessionId}": {
+            "post": {
+                "tags": [
+                    "Chatbot"
+                ],
+                "summary": "Akhiri sesi chat",
+                "operationId": "57c1d9e270878e7804e42c16947ca83c",
+                "parameters": [
+                    {
+                        "name": "sessionId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sesi chat telah diakhiri",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/chat/sessions": {
+            "get": {
+                "tags": [
+                    "Chatbot"
+                ],
+                "summary": "Ambil semua sesi chat milik user ini",
+                "operationId": "fdb8415b979d7679aec40a0d2c2a9163",
+                "responses": {
+                    "200": {
+                        "description": "Daftar sesi chat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "sessions": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/test-chatbot": {
+            "get": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Test endpoint dari ChatbotController",
+                "operationId": "b66b8488d6a192292c65c305a20e8964",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
             }
         },
         "/api/modul": {
@@ -1131,6 +1376,273 @@
                 ]
             }
         },
+        "/api/quiz/{quiz_id}": {
+            "post": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Update quiz (admin only)",
+                "operationId": "e8d8515ed4528d1e9ce20828e9c01fb4",
+                "parameters": [
+                    {
+                        "name": "quiz_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "thumbnail": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Quiz berhasil diupdate"
+                    },
+                    "404": {
+                        "description": "Quiz tidak ditemukan"
+                    },
+                    "422": {
+                        "description": "Validasi gagal"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Hapus quiz dan semua data terkait (admin only)",
+                "operationId": "21e4c8c66a5c18d3c76f2fb8d1c7869a",
+                "parameters": [
+                    {
+                        "name": "quiz_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Quiz berhasil dihapus"
+                    },
+                    "404": {
+                        "description": "Quiz tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/quiz/questions/{question_id}": {
+            "post": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Update soal quiz (admin only)",
+                "operationId": "ef97b9308c7f022120d9fed5baf96b1d",
+                "parameters": [
+                    {
+                        "name": "question_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "question_text"
+                                ],
+                                "properties": {
+                                    "question_text": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Soal berhasil diupdate"
+                    },
+                    "404": {
+                        "description": "Soal tidak ditemukan"
+                    },
+                    "422": {
+                        "description": "Validasi gagal"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Hapus soal quiz dan semua pilihan terkait (admin only)",
+                "operationId": "632484ccfc80e24567147341ed2890d5",
+                "parameters": [
+                    {
+                        "name": "question_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Soal berhasil dihapus"
+                    },
+                    "404": {
+                        "description": "Soal tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/quiz/options/{option_id}": {
+            "post": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Update pilihan soal (admin only)",
+                "operationId": "641fbb15b88ee4ac5e616d5e2b8e7208",
+                "parameters": [
+                    {
+                        "name": "option_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "option_label",
+                                    "option_text",
+                                    "is_correct"
+                                ],
+                                "properties": {
+                                    "option_label": {
+                                        "type": "string",
+                                        "enum": [
+                                            "A",
+                                            "B",
+                                            "C",
+                                            "D"
+                                        ]
+                                    },
+                                    "option_text": {
+                                        "type": "string"
+                                    },
+                                    "is_correct": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pilihan berhasil diupdate"
+                    },
+                    "404": {
+                        "description": "Pilihan tidak ditemukan"
+                    },
+                    "422": {
+                        "description": "Validasi gagal"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Hapus pilihan soal (admin only)",
+                "operationId": "180868d3ab77c5b83775e23b2a8e2fcb",
+                "parameters": [
+                    {
+                        "name": "option_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pilihan berhasil dihapus"
+                    },
+                    "404": {
+                        "description": "Pilihan tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/quiz/{quiz_id}/questions": {
             "get": {
                 "tags": [
@@ -1243,13 +1755,13 @@
                 ]
             }
         },
-        "/api/questions/{question_id}/options": {
+        "/api/quiz/questions/{question_id}/options": {
             "post": {
                 "tags": [
                     "Quiz"
                 ],
                 "summary": "Tambah pilihan ke soal (admin)",
-                "operationId": "594e8c36c0189149fb3ad3ca6dd2230c",
+                "operationId": "22e612b6f9e68b3e016e1042eced98a2",
                 "parameters": [
                     {
                         "name": "question_id",
@@ -1487,12 +1999,16 @@
             "description": "Category Modul"
         },
         {
-            "name": "Modul",
-            "description": "Modul"
+            "name": "Chatbot",
+            "description": "Chatbot"
         },
         {
             "name": "Quiz",
             "description": "Quiz"
+        },
+        {
+            "name": "Modul",
+            "description": "Modul"
         }
     ]
 }

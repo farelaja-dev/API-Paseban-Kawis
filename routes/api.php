@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/chat/history/{sessionId}', [ChatbotController::class, 'getSessionLogs']);
     Route::post('/chat/end/{sessionId}', [ChatbotController::class, 'endSession']);
     Route::get('/chat/sessions', [ChatbotController::class, 'getAllSessions']);
+    Route::get('/test-chatbot', [ChatbotController::class, 'testSwagger']);
 
     // AkunController
     Route::get('/akun/user-list', [AkunController::class, 'listUser']);
@@ -70,7 +71,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // ADMIN (role:1)
     Route::middleware('role:1')->group(function () {
         Route::post('/quiz', [QuizController::class, 'store']);
+        Route::post('/quiz/{quiz_id}', [QuizController::class, 'update']);
         Route::post('/quiz/{quiz_id}/questions', [QuizController::class, 'addQuestion']);
+        Route::post('/quiz/questions/{question_id}', [QuizController::class, 'updateQuestion']);
         Route::post('/quiz/questions/{question_id}/options', [QuizController::class, 'addOption']);
+        Route::post('/quiz/options/{option_id}', [QuizController::class, 'updateOption']);
+        Route::delete('/quiz/{quiz_id}', [QuizController::class, 'destroy']);
+        Route::delete('/quiz/questions/{question_id}', [QuizController::class, 'destroyQuestion']);
+        Route::delete('/quiz/options/{option_id}', [QuizController::class, 'destroyOption']);
     });
 });

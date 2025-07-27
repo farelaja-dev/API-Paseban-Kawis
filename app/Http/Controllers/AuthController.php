@@ -392,7 +392,7 @@ class AuthController extends Controller
     /**
      * @OA\Get(
      *     path="/api/statistik",
-     *     summary="Statistik total user, total modul, dan user aktif",
+     *     summary="Statistik total user, total modul, total quiz, dan user aktif",
      *     tags={"Statistik"},
      *     security={{ "sanctum":{} }},
      *     @OA\Response(
@@ -401,6 +401,7 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="total_user", type="integer"),
      *             @OA\Property(property="total_modul", type="integer"),
+     *             @OA\Property(property="total_quiz", type="integer"),
      *             @OA\Property(property="user_aktif", type="integer")
      *         )
      *     )
@@ -410,6 +411,7 @@ class AuthController extends Controller
     {
         $totalUser = \App\Models\User::count();
         $totalModul = \App\Models\Modul::count();
+        $totalQuiz = \App\Models\Quiz::count();
         $userAktif = DB::table('personal_access_tokens')
             ->where(function($q) {
                 $q->whereNull('expires_at')
@@ -421,6 +423,7 @@ class AuthController extends Controller
         return response()->json([
             'total_user' => $totalUser,
             'total_modul' => $totalModul,
+            'total_quiz' => $totalQuiz,
             'user_aktif' => $userAktif,
         ]);
     }
