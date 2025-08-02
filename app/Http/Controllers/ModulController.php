@@ -60,7 +60,7 @@ class ModulController extends Controller
             'judul_modul' => 'required|string|max:255',
             'category_modul_id' => 'required|exists:category_modul,id',
             'link_video' => 'required|string|max:255',
-            'pdf' => 'nullable|file|mimes:pdf|max:10240',
+            'pdf' => 'nullable|file|mimes:pdf|max:51200',
             'foto' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'deskripsi_modul' => 'required|string',
         ]);
@@ -156,8 +156,8 @@ class ModulController extends Controller
         $request->validate([
             'judul_modul' => 'sometimes|required|string|max:255',
             'category_modul_id' => 'sometimes|required|exists:category_modul,id',
-            'link_video' => 'sometimes|required|string|max:255',
-            'pdf' => 'nullable|file|mimes:pdf|max:10240',
+            'link_video' => 'sometimes|required|string|max:2048',
+            'pdf' => 'nullable|file|mimes:pdf|max:51200',
             'foto' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'deskripsi_modul' => 'sometimes|required|string',
         ]);

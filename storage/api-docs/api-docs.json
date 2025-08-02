@@ -1903,6 +1903,116 @@
                     }
                 ]
             }
+        },
+        "/api/quiz/{quiz_id}/leaderboard": {
+            "get": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Lihat leaderboard quiz berdasarkan nilai tertinggi",
+                "operationId": "d95fb28102eeeed11ad82485a7452ead",
+                "parameters": [
+                    {
+                        "name": "quiz_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Leaderboard berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "quiz": {
+                                            "type": "object"
+                                        },
+                                        "leaderboard": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "rank": {
+                                                        "type": "integer",
+                                                        "nullable": true
+                                                    },
+                                                    "user_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "user_photo": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "score": {
+                                                        "type": "integer"
+                                                    },
+                                                    "total_questions": {
+                                                        "type": "integer"
+                                                    },
+                                                    "percentage": {
+                                                        "type": "number"
+                                                    },
+                                                    "submitted_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Quiz tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/user/quiz-scores": {
+            "get": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Lihat riwayat nilai quiz user yang sedang login",
+                "operationId": "be04e5eac2644a51c2802afe511c0fc5",
+                "responses": {
+                    "200": {
+                        "description": "Riwayat nilai berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "quiz_scores": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {

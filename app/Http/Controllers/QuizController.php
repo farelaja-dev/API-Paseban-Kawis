@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Quiz;
 use App\Models\Question;
 use App\Models\Option;
+use App\Models\UserQuizScore;
 use Illuminate\Support\Facades\DB;
 
 class QuizController extends Controller
@@ -533,6 +534,64 @@ class QuizController extends Controller
 
     /**
      * @OA\Get(
+     *     path="/api/quiz/{quiz_id}/detail",
+     *     summary="Detail quiz dengan jumlah soal",
+     *     tags={"Quiz"},
+     *     @OA\Parameter(
+     *         name="quiz_id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Detail quiz berhasil diambil",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="quiz", type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="title", type="string"),
+     *                 @OA\Property(property="description", type="string"),
+     *                 @OA\Property(property="thumbnail", type="string"),
+     *                 @OA\Property(property="total_questions", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Quiz tidak ditemukan"
+     *     )
+     * )
+     */
+    public function getQuizDetail($quiz_id)
+    {
+        try {
+            $quiz = Quiz::findOrFail($quiz_id);
+            
+            // Hitung jumlah soal untuk quiz ini
+            $totalQuestions = Question::where('quiz_id', $quiz_id)->count();
+            
+            $quizDetail = [
+                'id' => $quiz->id,
+                'title' => $quiz->title,
+                'description' => $quiz->description,
+                'thumbnail' => $quiz->thumbnail,
+                'total_questions' => $totalQuestions
+            ];
+            
+            return response()->json([
+                'quiz' => $quizDetail
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Quiz tidak ditemukan'
+            ], 404);
+        }
+    }
+
+    /**
+     * @OA\Get(
      *     path="/api/quiz/{quiz_id}/questions",
      *     summary="Ambil soal dan pilihan untuk user",
      *     tags={"Quiz"},
@@ -612,9 +671,24 @@ class QuizController extends Controller
             'answers.*.question_id' => 'required|integer|exists:questions,id',
             'answers.*.selected_option' => 'required|string|in:A,B,C,D',
         ]);
+        
         $user_id = $request->user()->id;
+        
+        // Cek apakah user sudah pernah mengerjakan quiz ini
+        $existingScore = UserQuizScore::where('user_id', $user_id)
+            ->where('quiz_id', $quiz_id)
+            ->first();
+            
+        if ($existingScore) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Anda sudah pernah mengerjakan quiz ini'
+            ], 400);
+        }
+        
         $score = 0;
         $total = count($request->answers);
+        
         foreach ($request->answers as $ans) {
             $question = Question::find($ans['question_id']);
             $correct = Option::where('question_id', $question->id)
@@ -623,10 +697,131 @@ class QuizController extends Controller
                 ->exists();
             if ($correct) $score++;
         }
+        
+        // Hitung persentase
+        $percentage = $total > 0 ? ($score / $total) * 100 : 0;
+        
+        // Simpan hasil quiz ke database
+        UserQuizScore::create([
+            'user_id' => $user_id,
+            'quiz_id' => $quiz_id,
+            'score' => $score,
+            'total_questions' => $total,
+            'percentage' => $percentage,
+            'submitted_at' => now()
+        ]);
+        
         return response()->json([
             'message' => 'Jawaban berhasil disubmit',
             'score' => $score,
-            'total' => $total
+            'total' => $total,
+            'percentage' => round($percentage, 2)
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/quiz/{quiz_id}/leaderboard",
+     *     summary="Lihat leaderboard quiz berdasarkan nilai tertinggi",
+     *     tags={"Quiz"},
+     *     security={{ "sanctum":{ }}},
+     *     @OA\Parameter(
+     *         name="quiz_id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Leaderboard berhasil diambil",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="quiz", type="object"),
+     *             @OA\Property(property="leaderboard", type="array", @OA\Items(
+     *                 @OA\Property(property="rank", type="integer", nullable=true),
+     *                 @OA\Property(property="user_name", type="string"),
+     *                 @OA\Property(property="user_photo", type="string", nullable=true),
+     *                 @OA\Property(property="score", type="integer"),
+     *                 @OA\Property(property="total_questions", type="integer"),
+     *                 @OA\Property(property="percentage", type="number"),
+     *                 @OA\Property(property="submitted_at", type="string", format="date-time")
+     *             ))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Quiz tidak ditemukan"
+     *     )
+     * )
+     */
+    public function getLeaderboard($quiz_id)
+    {
+        $quiz = Quiz::findOrFail($quiz_id);
+        
+        $leaderboard = UserQuizScore::with('user:id,nama,foto')
+            ->where('quiz_id', $quiz_id)
+            ->orderBy('percentage', 'desc')
+            ->orderBy('submitted_at', 'asc')
+            ->get()
+            ->map(function ($score) {
+                return [
+                    'rank' => null, // Akan diisi di frontend
+                    'user_name' => $score->user->nama,
+                    'user_photo' => $score->user->foto,
+                    'score' => $score->score,
+                    'total_questions' => $score->total_questions,
+                    'percentage' => $score->percentage,
+                    'submitted_at' => $score->submitted_at->format('Y-m-d H:i:s')
+                ];
+            });
+        
+        return response()->json([
+            'quiz' => [
+                'id' => $quiz->id,
+                'title' => $quiz->title,
+                'description' => $quiz->description
+            ],
+            'leaderboard' => $leaderboard
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/user/quiz-scores",
+     *     summary="Lihat riwayat nilai quiz user yang sedang login",
+     *     tags={"Quiz"},
+     *     security={{ "sanctum":{ }}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Riwayat nilai berhasil diambil",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="quiz_scores", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
+    public function getUserQuizScores(Request $request)
+    {
+        $user_id = $request->user()->id;
+        
+        $quizScores = UserQuizScore::with('quiz:id,title,description,thumbnail')
+            ->where('user_id', $user_id)
+            ->orderBy('submitted_at', 'desc')
+            ->get()
+            ->map(function ($score) {
+                return [
+                    'quiz_id' => $score->quiz_id,
+                    'quiz_title' => $score->quiz->title,
+                    'quiz_description' => $score->quiz->description,
+                    'quiz_thumbnail' => $score->quiz->thumbnail,
+                    'score' => $score->score,
+                    'total_questions' => $score->total_questions,
+                    'percentage' => $score->percentage,
+                    'submitted_at' => $score->submitted_at->format('Y-m-d H:i:s')
+                ];
+            });
+        
+        return response()->json([
+            'quiz_scores' => $quizScores
         ]);
     }
 

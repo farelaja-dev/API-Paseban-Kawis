@@ -55,8 +55,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/category_modul/{id}', [CategoryModulController::class, 'update']);
         Route::delete('/category_modul/{id}', [CategoryModulController::class, 'destroy']);
 
-        Route::post('/modul', [ModulController::class, 'store']);
-        Route::post('/modul/{id}', [ModulController::class, 'update']);
+        Route::post('/modul', [ModulController::class, 'store'])->middleware('upload');
+        Route::post('/modul/{id}', [ModulController::class, 'update'])->middleware('upload');
         Route::delete('/modul/{id}', [ModulController::class, 'destroy']);
     });
 });
@@ -65,8 +65,11 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     // USER
     Route::get('/quiz', [QuizController::class, 'listQuiz']);
+    Route::get('/quiz/{quiz_id}/detail', [QuizController::class, 'getQuizDetail']);
     Route::get('/quiz/{quiz_id}/questions', [QuizController::class, 'getQuestions']);
     Route::post('/quiz/{quiz_id}/submit', [QuizController::class, 'submitAnswers']);
+    Route::get('/quiz/{quiz_id}/leaderboard', [QuizController::class, 'getLeaderboard']);
+    Route::get('/user/quiz-scores', [QuizController::class, 'getUserQuizScores']);
 
     // ADMIN (role:1)
     Route::middleware('role:1')->group(function () {
