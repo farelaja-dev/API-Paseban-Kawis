@@ -1819,6 +1819,62 @@
                 ]
             }
         },
+        "/api/quiz/{quiz_id}/detail": {
+            "get": {
+                "tags": [
+                    "Quiz"
+                ],
+                "summary": "Detail quiz dengan jumlah soal",
+                "operationId": "75274908aaab6e391e014422745093b9",
+                "parameters": [
+                    {
+                        "name": "quiz_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail quiz berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "quiz": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "thumbnail": {
+                                                    "type": "string"
+                                                },
+                                                "total_questions": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Quiz tidak ditemukan"
+                    }
+                }
+            }
+        },
         "/api/quiz/{quiz_id}/submit": {
             "post": {
                 "tags": [

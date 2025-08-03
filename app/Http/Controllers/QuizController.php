@@ -10,6 +10,7 @@ use App\Models\Question;
 use App\Models\Option;
 use App\Models\UserQuizScore;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class QuizController extends Controller
 {
@@ -666,57 +667,114 @@ class QuizController extends Controller
      */
     public function submitAnswers(Request $request, $quiz_id)
     {
-        $request->validate([
-            'answers' => 'required|array',
-            'answers.*.question_id' => 'required|integer|exists:questions,id',
-            'answers.*.selected_option' => 'required|string|in:A,B,C,D',
-        ]);
-        
-        $user_id = $request->user()->id;
-        
-        // Cek apakah user sudah pernah mengerjakan quiz ini
-        $existingScore = UserQuizScore::where('user_id', $user_id)
-            ->where('quiz_id', $quiz_id)
-            ->first();
+        try {
+            $request->validate([
+                'answers' => 'required|array',
+                'answers.*.question_id' => 'required|integer|exists:questions,id',
+                'answers.*.selected_option' => 'required|string|in:A,B,C,D',
+            ]);
             
-        if ($existingScore) {
+            $user_id = $request->user()->id;
+            
+            // Debug log untuk melihat data yang masuk
+            Log::info('Quiz submission attempt:', [
+                'user_id' => $user_id,
+                'quiz_id' => $quiz_id,
+                'answers' => $request->answers
+            ]);
+            
+            // Validasi quiz exists
+            $quiz = Quiz::findOrFail($quiz_id);
+            
+            // Validasi semua question_id termasuk dalam quiz ini
+            $questionIds = collect($request->answers)->pluck('question_id');
+            $validQuestions = Question::where('quiz_id', $quiz_id)
+                ->whereIn('id', $questionIds)
+                ->count();
+                
+            if ($validQuestions !== count($questionIds)) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Ada soal yang tidak valid untuk quiz ini'
+                ], 422);
+            }
+            
+            // Cek apakah user sudah pernah mengerjakan quiz ini
+            $existingScore = UserQuizScore::where('user_id', $user_id)
+                ->where('quiz_id', $quiz_id)
+                ->first();
+                
+            if ($existingScore) {
+                Log::info('User already submitted this quiz:', [
+                    'user_id' => $user_id,
+                    'quiz_id' => $quiz_id,
+                    'existing_score' => $existingScore
+                ]);
+                
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Anda sudah pernah mengerjakan quiz ini'
+                ], 400);
+            }
+            
+            $score = 0;
+            $total = count($request->answers);
+            
+            foreach ($request->answers as $ans) {
+                $correct = Option::where('question_id', $ans['question_id'])
+                    ->where('option_label', $ans['selected_option'])
+                    ->where('is_correct', true)
+                    ->exists();
+                    
+                if ($correct) $score++;
+                
+                Log::info('Answer check:', [
+                    'question_id' => $ans['question_id'],
+                    'selected_option' => $ans['selected_option'],
+                    'is_correct' => $correct
+                ]);
+            }
+            
+            // Hitung persentase
+            $percentage = $total > 0 ? ($score / $total) * 100 : 0;
+            
+            // Simpan hasil quiz ke database
+            $userQuizScore = UserQuizScore::create([
+                'user_id' => $user_id,
+                'quiz_id' => $quiz_id,
+                'score' => $score,
+                'total_questions' => $total,
+                'percentage' => $percentage,
+                'submitted_at' => now()
+            ]);
+            
+            Log::info('Quiz submitted successfully:', [
+                'user_id' => $user_id,
+                'quiz_id' => $quiz_id,
+                'score' => $score,
+                'total' => $total,
+                'percentage' => $percentage
+            ]);
+            
+            return response()->json([
+                'message' => 'Jawaban berhasil disubmit',
+                'score' => $score,
+                'total' => $total,
+                'percentage' => round($percentage, 2)
+            ], 200);
+            
+        } catch (\Exception $e) {
+            Log::error('Error submitting quiz:', [
+                'error' => $e->getMessage(),
+                'user_id' => $request->user()->id,
+                'quiz_id' => $quiz_id
+            ]);
+            
             return response()->json([
                 'error' => true,
-                'message' => 'Anda sudah pernah mengerjakan quiz ini'
-            ], 400);
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
-        
-        $score = 0;
-        $total = count($request->answers);
-        
-        foreach ($request->answers as $ans) {
-            $question = Question::find($ans['question_id']);
-            $correct = Option::where('question_id', $question->id)
-                ->where('option_label', $ans['selected_option'])
-                ->where('is_correct', true)
-                ->exists();
-            if ($correct) $score++;
-        }
-        
-        // Hitung persentase
-        $percentage = $total > 0 ? ($score / $total) * 100 : 0;
-        
-        // Simpan hasil quiz ke database
-        UserQuizScore::create([
-            'user_id' => $user_id,
-            'quiz_id' => $quiz_id,
-            'score' => $score,
-            'total_questions' => $total,
-            'percentage' => $percentage,
-            'submitted_at' => now()
-        ]);
-        
-        return response()->json([
-            'message' => 'Jawaban berhasil disubmit',
-            'score' => $score,
-            'total' => $total,
-            'percentage' => round($percentage, 2)
-        ]);
     }
 
     /**
