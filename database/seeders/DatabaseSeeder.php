@@ -16,10 +16,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Seeder untuk Role
-        Role::insert([
-            ['id' => 1, 'nama_role' => 'admin'],
-            ['id' => 2, 'nama_role' => 'user']
-        ]);
+        // Role::insert([
+        //     ['id' => 1, 'nama_role' => 'admin'],
+        //     ['id' => 2, 'nama_role' => 'user']
+        // ]);
 
         // Seeder untuk User
         User::insert([
