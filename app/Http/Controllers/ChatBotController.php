@@ -80,7 +80,7 @@ class ChatbotController extends Controller
             'Authorization' => 'Bearer ' . env('OPENROUTER_API_KEY'),
             'Content-Type' => 'application/json',
         ])->post('https://openrouter.ai/api/v1/chat/completions', [
-            'model' => 'deepseek/deepseek-chat-v3-0324:free',
+            'model' => 'x-ai/grok-4-fast:free',
             'messages' => [
                 ['role' => 'system', 'content' => 'You are an educational assistant.'],
                 ['role' => 'user', 'content' => $prompt],
@@ -89,7 +89,7 @@ class ChatbotController extends Controller
 
         Log::info('OpenRouter response:', [$response->json()]);
 
-        $botReply = $response->json('choices.0.message.content') ?? 'Maaf, terjadi kesalahan.';
+        $botReply = $response->json('choices.0.message.content') ?? 'Chat anda sudah melewati batas limit';
 
         // Save chat log
         ChatLog::create([
